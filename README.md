@@ -29,7 +29,7 @@ Note: When printing the chessboard, the program makes use of ANSI escape codes t
 * Choose whether you want to run a supplied test case (by default, it reads from testCases.txt). The syntax for test cases is straightforward in the testCase.txt file on how to specify starting positions (see below for more details). If you say no, you will be able to pick player 1 or player 2 and play against the program.
 * Enter the maximum number of moves the game should terminate after.
 * If you chose a test case, the program will run its course based on the supplied test cases.
-* If you choose no test, then you must pick whether you want to be player X or player Y.
+* If you choose no test, then you must tell the program whether to play as player X or player Y.
 * Choose the initial starting points of each piece (player X's king and rook, player Y's king).
 * When entering moves in the game, use the format K(3,5), which here means "move my king to file 3, rank 5".
 
