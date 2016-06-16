@@ -5,7 +5,7 @@
 This is a program I wrote for an artificial intelligence class (CPSC 481) I took while doing my masters in psychology at California State University, Fullerton. It simulates a KRK chess endgame, where player X has a king and rook, while player Y has only a king. The goal of the player X is to force player Y into checkmate, while the goal of player Y is to avoid this situation until the maximum number of moves have played out.
 
 ### Minimax and Heuristics
-Each player uses a minimax algorithm (with alpha-beta pruning to reduce infeasible brances of the game tree in order to reduce the size of the search space). Player 1 and player 2 each have their own heuristic functions to determine what moves are best for them based on their goals. For the heuristic functions, I initially based player X’s heuristic off of the mop-up evaluation of CHESS 4.5, as indicated in [this](https://chessprogramming.wikispaces.com/Mop-up+evaluation) chess programming wiki.
+Each player uses a minimax algorithm (with alpha-beta pruning to reduce infeasible brances of the game tree in order to reduce the size of the search space). Player X and player Y each have their own heuristic functions to determine what moves are best for them based on their goals. For the heuristic functions, I initially based player X’s heuristic off of the mop-up evaluation of CHESS 4.5, as indicated in [this](https://chessprogramming.wikispaces.com/Mop-up+evaluation) chess programming wiki.
 
 #### Heuristic Strategies
 
