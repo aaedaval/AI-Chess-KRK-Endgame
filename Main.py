@@ -1,15 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-"""
-Main.py
-
-This module contains the main execution of the game.
-
-Written by: Sam Handelman
-CPSC 481 - Artificial Intelligence
-Assignment 1 - KRK Chess Endgame with Mini-Max
-"""
 # Imports
 import SetupUtils
 
@@ -20,10 +11,9 @@ def main():
     # Set up for test mode
     if test_mode:
         SetupUtils.test_mode_setup(n)
-    # Set up for competition mode
     else:
-        SetupUtils.competition_setup(n)
-
+	exit(0)
+ 
     restart_str = raw_input('Would you like to play again? (y/n) >> ').upper()
     while restart_str not in ['Y','YES','N','NO']:
         print '%s is not a valid response.' % restart_str

@@ -1,11 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
-"""
-GameClasses.py
-
-This module contains the data structures (the chessboard state, players, and associated data) and their methods.
-"""
+from Pieces import Rook,King
+from Board import Board
 
 """ Imports """
 ## Python Library Imports
@@ -18,18 +14,6 @@ from re import split
 ## Source code imports
 import GameUtils
 
-""" Global Variables """
-
-### ANSI Escape Codes ###
-# Gives the board a checkered pattern like a real chessboard
-bw = '\x1b[47m' # Background white
-bb = '\x1b[40m' # Background black
-fw = '\x1b[37m' # Foreground white
-fb = '\x1b[30m' # Foreground black
-fr = '\x1b[39m' # Foreground reset
-br = '\x1b[49m' # Background reset
-
-""" Classes """
 
 class Player(object):
     """
@@ -43,7 +27,7 @@ class Player(object):
                 input_mode -- a Boolean value indicating whether the player will use moves from input (for competition mode). Default value is set to False.
         """
         # Assert that player was correctly initialized with a valid name
-        assert name.upper() in ['X', 'Y'], 'Player name must be either X or Y.'
+        assert name.upper() in ['W', 'B'], 'Player name must be either X or Y.'
         assert type(input_mode) is bool
         
         # Set-up instance attributes for the player
@@ -82,7 +66,7 @@ class Player(object):
             f, r = GameUtils.check_coordinates(strs[1], strs[2])
             if strs[0].upper() == 'K':
                 return King(self, Position(f, r))
-            elif strs[0].upper() == 'R' and self.name == 'X':
+            elif strs[0].upper() == 'R' and self.name == 'W':
                 return Rook(self, Position(f, r))
 
     def move(self, current_state):
@@ -114,7 +98,7 @@ class Player(object):
                 depth -- the distance of the given state from the current game state as given by the mini-max algorithm.
         """        
         # Return the heuristic value based on the player
-        if self.name == 'X':
+        if self.name == 'W':
             return self._heuristic_x(state, depth)
         else:
             return self._heuristic_y(state, depth)
@@ -142,7 +126,7 @@ class Player(object):
                 Returns:
                     heuristic value
             """
-            if state.is_leaf or depth >= self.ply or (self.name == 'X' and state.check_cycle(min_length=4,max_length=8)):
+            if state.is_leaf or depth >= self.ply or (self.name == 'W' and state.check_cycle(min_length=4,max_length=8)):
                 return (state, self.heuristic(state, depth))
             v = -inf
             for child in state.children:
@@ -351,295 +335,10 @@ class Player(object):
         
         return -9.3*RX_KY_diff - 5.7*KY_cmd + (10*KY_moves/float(KY_cmd+1)) + penalty - bonus
     
-### Chess Piece Classes ###
-class Position(namedtuple('Position', ['file','rank'])):
-    def __sub__(self, other):
-        assert isinstance(other,Position)
-        return (other.file-self.file, other.rank-self.rank)
-    
-    @classmethod
-    def is_valid(cls, f, r):
-        """
-        Class method to check if a given file and rank are valid for a position.
-        """
-        for i in (f,r):
-            if i < 1 or i > 8:
-                return False
-        return True
-    
-""" PIECE CLASSES """    
-class Rook(object):
-    """
-    A class representing rooks.
-    """
-    def __init__(self, owner, position):
-        """
-        Constructor for instances of the class Rook.
-            Arguments:
-                owner -- an instance of Player to represent the owner of the piece.
-        """
-        self.owner = owner
-        self.position = position
-        self.attacking_positions = self._get_attacking_positions()
-    
-    def __str__(self):
-        return 'R' + self.owner.name
-    
-    def __repr__(self):
-        return self.__str__() + '(%i,%i)' % (self.position.file, self.position.rank)
-    
-    def move(self, new_position):
-        """
-        Move the current instance of Rook to a specified position.
-            Arguments:
-                new_position -- an instance of position specifying where to move the rook to
-            Returns:
-                new_rook -- a new rook with the specified position.
-        """
-        new_rook = Rook(self.owner, new_position)
-        return new_rook
-  
-    def __eq__(self, other):
-        return isinstance(other, self.__class__) and other.position == self.position
-    
-    def __ne__(self, other):
-        return not self.__eq__(other)
-    
-    def _get_attacking_positions(self):
-        """
-        A private method used to set the attacking_positions attribute for the rook. Called upon initialization.
-            Arguments:
-                None
-            Returns:
-                attacking positions
-        """
-        current_file, current_rank = self.position
-        hor = [Position(f, current_rank) for f in xrange(1,9) if f != current_file]
-        ver = [Position(current_file, r) for r in xrange(1,9) if r != current_rank]
-        return hor + ver
 
-class King(object):
-    """
-    A class representing kings.
-    """
-    directions = {
-        # A dict containing the directions which the king can move.
-        # The keys are acronyms for North, Northwest, South, Southwest, etc.
-        # The values are the corresponding x and y changes in position on the board.
-        'NW': (-1,-1),
-        'SW': (-1,1),
-        'SE': (1,1),
-        'NE': (1,-1),
-        'N': (0,-1),
-        'W': (-1,0),
-        'S': (0,1),
-        'E': (1,0)
-    }
-    def __init__(self, owner, position):
-        """
-        Constructor for instances of the class King.
-            Arguments:
-                owner -- an instance of Player to represent the owner of the piece.
-        """
-        self.owner = owner
-        self.position = position
-        self.attacking_positions = self._get_attacking_positions()
-        
-    def __str__(self):
-        """
-        String formatting for objects of class King. Used for printing on the board
-        """
-        return 'K' + self.owner.name
     
-    def __repr__(self):
-        """
-        String representation for objects of class King. Used for debugging purposes.
-        """
-        return self.__str__() + '(%i,%i)' % (self.position.file, self.position.rank)
-    
-    def __eq__(self, other):
-        """
-        Overriding the == operator for class King to ensure it works properly.
-        """
-        return isinstance(other, self.__class__) and other.position == self.position
-    
-    def __ne__(self, other):
-        """
-        Overriding the != operator for class King to ensure it works properly.
-        """
-        return not self.__eq__(other)
-    
-    """ METHODS """
-    def move(self, new_position):
-        """
-        Creates a "move" by generating a king at a new position.
-            Arguments:
-                new_position -- an instance of Position for the location of the move
-            Returns:
-                new_king -- an instance of King at new_position
-        """
-        new_king = King(self.owner, new_position)
-        return new_king
-    
-    def between(self, p1, p2):
-        """
-        Tests if the king is between two other pieces.
-            Arguments:
-                p1 -- a position
-                p2 -- a second position
-            Returns:
-                Boolean value indicating whether the king is situated directly between the two given positions (p1 and p2)
-        """
-        king_pos = self.position
-        # If the three pieces are aligned in a file together
-        if king_pos.file == p1.file and king_pos.file == p2.file:
-            # Check to see if the current king is in the middle
-            if (p1.rank < king_pos.rank and king_pos.rank < p2.rank) or (p1.rank > king_pos.rank and king_pos.rank > p2.rank):
-                return True
-        # If the three pieces are aligned in a rank together
-        if king_pos.rank == p1.rank and king_pos.rank == p2.rank:
-            # Check to see if the current king is in the middle
-            if (p1.file < king_pos.file and king_pos.file < p2.file) or (p1.file > king_pos.file and king_pos.file > p2.file):
-                return True        
-        # If these tests fail, then the king is not in the middle of the pieces
-        return False
-    
-    def _get_attacking_positions(self):
-        """
-        A private method used to set the attacking_positions attribute for the king. Called upon initialization.
-            Arguments:
-                None
-            Returns:
-                attacking positions
-        """        
-        # Get current x and y coordinates
-        f, r = self.position
-        # List comprehension to return each possible attacking position
-        return [Position(f+df, r+dr) for df, dr in King.directions.values() if Position.is_valid(f+df, r+dr)]
 
-### Board Structure ###
-class Board(object):
-    """
-    A class to represent the chess board in a 2-dimensional array.
-    """
-    def __init__(self, pieces=None):
-        """
-        Constructor for instances of the class Board.
-            Arguments:
-                pieces -- a list of pieces to immediately add to the board. Default value is set to None.
-            Returns:
-                None
-        """
-        # Create the board size: 8x8 array
-        board_range = range(8)
-        self._mat = [[None for x in board_range] for x in board_range]
-        # If the constructor is called with pieces to add, the following code will execute to immediately add them.
-        if pieces is not None:
-            self._add_pieces(pieces)
-        
-    def __str__(self):
-        """
-        Overriding the base function str() to customize its behavior for instances of class Board.
-        This method constructs a string representation of the chessboard based on the pieces in it.
-        """        
-        # The string representing the top of each row
-        top_even = '|' + bw + '‾‾‾‾‾‾' + br + '|' + bb + '‾‾‾‾‾‾' + br + '|' + bw + '‾‾‾‾‾‾' + br + '|' + bb + '‾‾‾‾‾‾' + br + '|' + bw + '‾‾‾‾‾‾' + br + '|' + bb + '‾‾‾‾‾‾' + br + '|' + bw + '‾‾‾‾‾‾' + br + '|' + bb + '‾‾‾‾‾‾' + br + '|\n'
-        top_odd = '|' + bb + '‾‾‾‾‾‾' + br + '|' + bw + '‾‾‾‾‾‾' + br + '|' + bb + '‾‾‾‾‾‾' + br + '|' + bw + '‾‾‾‾‾‾' + br + '|' + bb + '‾‾‾‾‾‾' + br + '|' + bw + '‾‾‾‾‾‾' + br + '|' + bb + '‾‾‾‾‾‾' + br + '|' + bw + '‾‾‾‾‾‾' + br + '|\n'
-        # The string representing the bottom of each row
-        bot_even = '|' + bw + '______' + br + '|' + bb + '______' + br + '|' + bw + '______' + br + '|' + bb + '______' + br + '|' + bw + '______' + br + '|' + bb + '______' + br + '|' + bw + '______' + br + '|' + bb + '______' + br + '|\n'
-        bot_odd = '|' + bb + '______' + br + '|' + bw + '______' + br + '|' + bb + '______' + br + '|' + bw + '______' + br + '|' + bb + '______' + br + '|' + bw + '______' + br + '|' + bb + '______' + br + '|' + bw + '______' + br + '|\n'
-        # Initializing an empty string which will be returned as the final string
-        board_str = ''
-        # Initializing the row number to be included as part of the board string
-        row_n = 0
-        for row in self._mat:
-            # Initializing the string representing the middle section of each row
-            mid = ''
-            for i in xrange(len(row)):
-                # If there is no piece in the current position
-                if row[i] is None:
-                    # concatenate a string representing the middle an empty cell to the mid string.
-                    if (row_n%2 == 0 and i%2 == 0) or (row_n%2 == 1 and i%2 == 1):
-                        mid += '|' + bw + '      ' + br
-                    else:
-                        mid += '|' + bb + '      ' + br
-                else:
-                    # Otherwise, make sure the object is an instance of Piece and concatenate the middle of the cell containing the name of the piece.
-                    #assert isinstance(row[i], Piece), 'Item in board is not a subclass of Piece!!!'
-                    if (row_n%2 == 0 and i%2 == 0) or (row_n%2 == 1 and i%2 == 1):
-                        mid += '|' + bw + fb
-                    else:
-                        mid += '|' + bb + fw
-                    mid += '  %s  ' % row[i] + fr + br                        
-            # Once each item in a row has been iterated, concatenate the top mid and bottom strings to board_str
-            if row_n%2 == 0:
-                board_str += top_even
-                board_str += mid + '| %i\n' % (8-row_n)
-                board_str += bot_even
-            else:
-                board_str += top_odd
-                board_str += mid + '| %i\n' % (8-row_n)
-                board_str += bot_odd                
-            row_n += 1
-        # Concatenate the column labels at the end to board_str before returning it
-        board_str += '   1      2      3      4      5      6      7      8   \n'
-        return board_str
-    
-    def __repr__(self):
-        """
-        Overriding the base function repr() to customize its behavior for instances of class Board.
-        This method constructs a string representation of the chessboard based on the pieces in it.
-        This is the version that gets printed to file and thus does not include ANSI escape sequences.
-        """
-        # The string representing the top of each row
-        top = '|‾‾‾‾‾‾|‾‾‾‾‾‾|‾‾‾‾‾‾|‾‾‾‾‾‾|‾‾‾‾‾‾|‾‾‾‾‾‾|‾‾‾‾‾‾|‾‾‾‾‾‾|\n'
-        # The string representing the bottom of each row
-        bot = '|______|______|______|______|______|______|______|______|\n'
-        # Initializing an empty string which will be returned as the final string
-        board_str = ''
-        # Initializing the row number to be included as part of the board string
-        row_n = 0
-        for row in self._mat:
-            # Initializing the string representing the middle section of each row
-            mid = ''
-            for i in xrange(len(row)):
-                # If there is no piece in the current position
-                if row[i] is None:
-                    # concatenate a string representing the middle an empty cell to the mid string.
-                    mid += '|      '
-                else:
-                    # Otherwise, concatenate a string containing the occupying piece name.
-                    mid += '|  %s  ' % row[i]                     
-            # Once each item in a row has been iterated, concatenate the top mid and bottom strings to board_str
-            board_str += top
-            board_str += mid + '| %i\n' % (8-row_n)
-            board_str += bot
-            row_n += 1
-        # Concatenate the column labels at the end to board_str before returning it
-        board_str += '   1      2      3      4      5      6      7      8   \n'
-        return board_str
-    
-    def _add_pieces(self, pieces):
-        """
-        A method to add pieces to the board. Only meant to be used by the constructor/initializer.
-            Arguments:
-                pieces -- a list of pieces (rook and kings) to put on the chess board.
-            Returns:
-                None
-        """
-        # Assert that the argument is a list
-        assert isinstance(pieces, list), 'Pieces must be a list!'
-        # Iterate over the list
-        for p in pieces:
-            # Parse out the x and y coordinates of the position
-            f, r = p.position
-            # Convert rank to zero-indexed row
-            row = 8 - r
-            # Convert file to zero-indexed column
-            column = f - 1
-            # Add the piece to the corresponding location in the array
-            self._mat[row][column] = p
-        
+
 class GameState(object):
     """
     The instances of this class represent states of the chess game. This class is used
@@ -683,6 +382,7 @@ class GameState(object):
         self.game_status = self._get_game_status()
         self._children = []
         self.parent = parent
+	
         
         # Make sure the game status is okay/not terminal
         if self.game_status in ['continue', 'check'] and self.max_level > self.level:
@@ -950,8 +650,8 @@ class GameState(object):
         # Adding an extra new line for nicer formatting
         game_str += '\n'
         # Create a separate string to print to screen and to gameResults.txt (to get rid of ANSI escape codes in the text file)
-        board_str_print = game_str + str(self.board)
-        board_str_file = game_str + repr(self.board)
+        board_str_print = game_str + Board.__str__(self.board)
+        board_str_file = game_str + Board.__repr__(self.board)
 
         # Print the string onto the screen
         print board_str_print

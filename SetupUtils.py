@@ -9,9 +9,11 @@ This module contains global functions used in the setup/menu portion of the prog
 
 ### Python Library imports
 from re import split
-
+import numpy as np
 import GameClasses
 import GameUtils
+import Pieces
+import Board
 #from pympler.tracker import SummaryTracker
 #tracker = SummaryTracker()
 
@@ -31,7 +33,7 @@ def begin_setup():
     """
     # Ask if this is a test
     yes_no_condition = lambda response: response.upper() in ['Y','YES','N','NO']
-    test_mode_str = query_until('Is this a test? (Y/N)', yes_no_condition)    
+    test_mode_str = query_until('Shall we start the game? (Y/N)', yes_no_condition)    
     # If it is a test, set testMode to True.
     if test_mode_str.upper() in ['Y', 'YES']:
         test_mode = True
@@ -58,17 +60,22 @@ def test_mode_setup(n):
     # Read the test case file and break up new lines as separate strings
     test_case_file = open('testCase.txt')
     test_cases = []
+   
+    test_cases = []
     for line in test_case_file:
         if line != '\n' and line[0] != '#':
             test_cases.append(line.strip())
     test_case_file.close()
-    
+    print test_cases
+
     # Initialize players
-    player_x = GameClasses.Player('X')
-    player_y = GameClasses.Player('Y')
+    player_x = GameClasses.Player('W')
+    player_y = GameClasses.Player('B')
     #tracker.print_diff()
     # Parse and run each test case
+   
     for case in test_cases:
+	
         if parse_test_case(case, player_x, player_y) is not None:
             test_case_name, KX, RX, KY = parse_test_case(case, player_x, player_y)
         else:
@@ -81,42 +88,6 @@ def test_mode_setup(n):
         GameUtils.play(root_state, test_mode=True, case_name=test_case_name)
         #tracker.print_diff()
         
-def competition_setup(n):
-    """
-    A function to set up competition mode. It reads gathers user input for each piece and checks/parses the information using parse_position
-    to initialize the GameClasses.Position tuples for each piece. The function then uses these initialized objects to start playing the game.
-        Arguments:
-            n -- the maximum number of moves.
-        Returns:
-            None
-    """
-    name_condition = lambda name: name.upper() in ['X','Y']
-    ai_player = query_until('Which player should I play as? (X/Y)', name_condition)    
-    if ai_player == 'X':
-        player_x = GameClasses.Player('X')
-        player_y = GameClasses.Player('Y', input_mode=True)
-    else:
-        player_x = GameClasses.Player('X', input_mode=True)
-        player_y = GameClasses.Player('Y')        
-    
-    status_confirmed = False
-    while not status_confirmed:
-        print 'Please enter ordered pairs of row and column numbers for the following pieces (e.g., (1,2) is row 1, column 2):'
-        KX_position = query_until_parsed("Player X's king:", parse_position)
-        KX = GameClasses.King(player_x, KX_position)
-        RX_condition = lambda position: position != KX_position
-        RX_position = query_until_parsed("Player X's rook:", parse_position, condition=RX_condition)
-        RX = GameClasses.Rook(player_x, RX_position)
-        KY_condition = lambda position: position != KX_position and position != RX_position
-        KY_position = query_until_parsed("Player Y's king:", parse_position, condition=KY_condition)     
-        KY = GameClasses.King(player_y, KY_position)
-        
-        root_state = GameClasses.GameState(KX, RX, KY, n*2)
-        if root_state.game_status == 'continue':
-            status_confirmed = True
-        else:
-            print 'The initial state returned with a status of "%s". Please try again.' % root_state.game_status
-    GameUtils.play(root_state, test_mode=False)
 
 """ Parsing Functions """
 def check_coordinates(file_str, rank_str):
@@ -174,24 +145,26 @@ def parse_test_case(tc, player_x, player_y):
             KY -- an instance of PieceGameClasses.Position representing player y's king and its position indicated in the test case line.
     """    
     strs = split(' ', tc)
+   
     for s in strs[1:]:
+	print strs
         if len(s) != 8:
             print 'Incorrect syntax for input: %s. Example of correct syntax: x.K(2,4)' % s
             return None
         if check_coordinates(s[4],s[6]) is None:
             return None
         f, r = check_coordinates(s[4],s[6])
-        if s[0].upper() == 'X':
+        if s[0].upper() == 'W':
             if s[2].upper() == 'R':
-                RX = GameClasses.Rook(player_x, GameClasses.Position(f, r))
+                RX = Pieces.Rook(player_x, Pieces.Position(f, r))
             elif s[2].upper() == 'K':
-                KX = GameClasses.King(player_x, GameClasses.Position(f, r))
+                KX = Pieces.King(player_x, Pieces.Position(f, r))
             else:
                 print 'Player X can only be assigned a king or rook. Error came from the following test case: %s' % strs
                 return None
-        elif s[0].upper() == 'Y':
+        elif s[0].upper() == 'B':
             if s[2].upper() == 'K':
-                KY = GameClasses.King(player_y, GameClasses.Position(f, r))
+                KY = Pieces.King(player_y, Pieces.Position(f, r))
             else:
                 print 'Player Y can only be assigned a king. Error came from the following test case: %s' % strs
                 return None
@@ -214,6 +187,6 @@ def parse_position(op):
     if len(strs) == 2:
         if check_coordinates(strs[0], strs[1]) is not None:
             f, r = check_coordinates(strs[0], strs[1])
-            return GameClasses.Position(f, r)
+            return Pieces.Position(f, r)
     else:
         return None

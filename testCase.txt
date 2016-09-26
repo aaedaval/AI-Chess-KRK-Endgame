@@ -1,13 +1,13 @@
 ## To test out the other test cases, simply remove the hash symbol from the beginning to "uncomment" them.
 
 ### Using the given test cases
-Testcase1: x.K(5,6) x.R(8,6) y.K(4,8)
-Testcase2: x.K(6,5) x.R(5,6) y.K(4,7)
+#Testcase1: W.K(5,6) W.R(8,6) B.K(4,8)
+#Testcase2: W.K(6,5) W.R(5,6) B.K(4,7)
 
 ### Testing out cases that are advantagous to player Y
-#testX1: x.K(1,2) x.R(8,6) y.K(4,4)
-#testX2: x.K(1,1) x.R(8,8) y.K(5,4)
-#testX3: x.K(6,2) x.R(1,8) y.K(4,5)
+testX1: W.K(1,2) W.R(8,6) B.K(4,4)
+testX2: W.K(1,1) W.R(8,8) B.K(5,4)
+testX3: W.K(6,2) W.R(1,8) B.K(4,5)
 #testX4: x.K(1,8) x.R(6,1) y.K(5,5)
 #testX5: x.K(3,2) x.R(7,2) y.K(4,4)
 #testX6: x.K(2,5) x.R(1,1) y.K(5,4)
